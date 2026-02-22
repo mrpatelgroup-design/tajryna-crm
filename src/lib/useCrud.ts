@@ -1,7 +1,22 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
-export function useCrud<T extends { id: string }>(initialData: T[]) {
-  const [data, setData] = useState<T[]>(initialData);
+export function useCrud<T extends { id: string }>(initialData: T[], storageKey: string) {
+  const [data, setData] = useState<T[]>(() => {
+    const stored = localStorage.getItem(storageKey);
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch {
+        return initialData;
+      }
+    }
+    return initialData;
+  });
+
+  useEffect(() => {
+    localStorage.setItem(storageKey, JSON.stringify(data));
+  }, [data, storageKey]);
+
   const [editItem, setEditItem] = useState<T | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
@@ -46,6 +61,11 @@ export function useCrud<T extends { id: string }>(initialData: T[]) {
     return `${prefix}${String(max + 1).padStart(3, '0')}`;
   }, [data]);
 
+  const resetData = useCallback(() => {
+    setData(initialData);
+    localStorage.removeItem(storageKey);
+  }, [initialData, storageKey]);
+
   return {
     data, setData,
     editItem, setEditItem,
@@ -55,5 +75,6 @@ export function useCrud<T extends { id: string }>(initialData: T[]) {
     deleteId,
     add, update, remove,
     openEdit, openDelete, nextId,
+    resetData,
   };
 }

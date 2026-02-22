@@ -80,15 +80,34 @@ export const customersData = [
 ];
 
 // Products Data
-export const productsData = [
-  { id: 'P-001', name: 'Premium Wheat Flour 5kg', sku: 'WF-5KG-P', category: 'Flour', price: 285, stock: 1250, minStock: 500, status: 'In Stock' },
-  { id: 'P-002', name: 'Gold Refined Oil 1L', sku: 'RO-1L-G', category: 'Oils', price: 165, stock: 890, minStock: 300, status: 'In Stock' },
-  { id: 'P-003', name: 'Basmati Rice 5kg', sku: 'BR-5KG', category: 'Rice', price: 425, stock: 120, minStock: 200, status: 'Low Stock' },
-  { id: 'P-004', name: 'Sugar 1kg', sku: 'SG-1KG', category: 'Sugar', price: 48, stock: 2500, minStock: 1000, status: 'In Stock' },
-  { id: 'P-005', name: 'Tea Premium 250g', sku: 'TP-250G', category: 'Beverages', price: 195, stock: 45, minStock: 100, status: 'Low Stock' },
-  { id: 'P-006', name: 'Dal Toor 1kg', sku: 'DT-1KG', category: 'Pulses', price: 155, stock: 680, minStock: 300, status: 'In Stock' },
-  { id: 'P-007', name: 'Ghee 500ml', sku: 'GH-500ML', category: 'Dairy', price: 310, stock: 0, minStock: 150, status: 'Out of Stock' },
+export const productsData: Prod[] = [
+  { id: 'P-001', itemName: 'Premium Wheat Flour 5kg', itemHSN: '11010010', category: 'Flour', description: 'High quality wheat flour suitable for all baking needs', itemCode: 'WF-5KG-P', servicePeriod: 180, itemImage: '', mrp: 320, salePrice: 285, wholesalePrice: 275, purchasePrice: 260, taxes: '0%', stock: 1250, minStock: 500, status: 'In Stock' },
+  { id: 'P-002', itemName: 'Gold Refined Oil 1L', itemHSN: '15099000', category: 'Oils', description: 'Pure refined sunflower oil', itemCode: 'RO-1L-G', servicePeriod: 365, itemImage: '', mrp: 185, salePrice: 165, wholesalePrice: 158, purchasePrice: 150, taxes: '5%', stock: 890, minStock: 300, status: 'In Stock' },
+  { id: 'P-003', itemName: 'Basmati Rice 5kg', itemHSN: '10063020', category: 'Rice', description: 'Premium quality basmati rice', itemCode: 'BR-5KG', servicePeriod: 730, itemImage: '', mrp: 480, salePrice: 425, wholesalePrice: 410, purchasePrice: 390, taxes: '5%', stock: 120, minStock: 200, status: 'Low Stock' },
+  { id: 'P-004', itemName: 'Sugar 1kg', itemHSN: '17019910', category: 'Sugar', description: 'Pure crystalline sugar', itemCode: 'SG-1KG', servicePeriod: 1095, itemImage: '', mrp: 55, salePrice: 48, wholesalePrice: 45, purchasePrice: 42, taxes: '0%', stock: 2500, minStock: 1000, status: 'In Stock' },
+  { id: 'P-005', itemName: 'Tea Premium 250g', itemHSN: '09023010', category: 'Beverages', description: 'Premium CTC tea leaves', itemCode: 'TP-250G', servicePeriod: 365, itemImage: '', mrp: 220, salePrice: 195, wholesalePrice: 185, purchasePrice: 175, taxes: '5%', stock: 45, minStock: 100, status: 'Low Stock' },
+  { id: 'P-006', itemName: 'Dal Toor 1kg', itemHSN: '07132010', category: 'Pulses', description: 'Split pigeon pea', itemCode: 'DT-1KG', servicePeriod: 365, itemImage: '', mrp: 175, salePrice: 155, wholesalePrice: 148, purchasePrice: 140, taxes: '5%', stock: 680, minStock: 300, status: 'In Stock' },
+  { id: 'P-007', itemName: 'Ghee 500ml', itemHSN: '04059010', category: 'Dairy', description: 'Pure desi ghee', itemCode: 'GH-500ML', servicePeriod: 180, itemImage: '', mrp: 350, salePrice: 310, wholesalePrice: 295, purchasePrice: 280, taxes: '12%', stock: 0, minStock: 150, status: 'Out of Stock' },
 ];
+
+interface Prod {
+  id: string;
+  itemName: string;
+  itemHSN: string;
+  category: string;
+  description: string;
+  itemCode: string;
+  servicePeriod: number;
+  itemImage: string;
+  mrp: number;
+  salePrice: number;
+  wholesalePrice: number;
+  purchasePrice: number;
+  taxes: string;
+  stock: number;
+  minStock: number;
+  status: string;
+}
 
 // Team Data
 export const teamData = [

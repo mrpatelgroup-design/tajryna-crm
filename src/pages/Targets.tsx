@@ -30,7 +30,7 @@ function Form({ value, onChange, onSave, label }: { value: Tgt; onChange: (v: Tg
 }
 
 export default function Targets() {
-  const crud = useCrud<Tgt>(targetsData as Tgt[]);
+  const crud = useCrud<Tgt>(targetsData as Tgt[], 'targets');
   const [form, setForm] = useState<Tgt>(empty);
 
   return (

@@ -36,7 +36,7 @@ function SaleForm({ value, onChange, onSave, label }: { value: Sale; onChange: (
 }
 
 export default function SecondarySales() {
-  const crud = useCrud<Sale>(secondarySalesData as Sale[]);
+  const crud = useCrud<Sale>(secondarySalesData as Sale[], 'secondarySales');
   const [form, setForm] = useState<Sale>(empty);
 
   const columns = [

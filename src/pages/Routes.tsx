@@ -31,7 +31,7 @@ function Form({ value, onChange, onSave, label }: { value: RouteItem; onChange: 
 }
 
 export default function Routes() {
-  const crud = useCrud<RouteItem>(routesData as RouteItem[]);
+  const crud = useCrud<RouteItem>(routesData as RouteItem[], 'routes');
   const [form, setForm] = useState<RouteItem>(empty);
 
   const columns = [

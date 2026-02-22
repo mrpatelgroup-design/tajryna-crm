@@ -29,7 +29,7 @@ function Form({ value, onChange, onSave, label }: { value: Loy; onChange: (v: Lo
 }
 
 export default function Loyalty() {
-  const crud = useCrud<Loy>(loyaltyData as Loy[]);
+  const crud = useCrud<Loy>(loyaltyData as Loy[], 'loyalty');
   const [form, setForm] = useState<Loy>(empty);
 
   const columns = [

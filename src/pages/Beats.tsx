@@ -31,7 +31,7 @@ function Form({ value, onChange, onSave, label }: { value: Beat; onChange: (v: B
 }
 
 export default function Beats() {
-  const crud = useCrud<Beat>(beatsData as Beat[]);
+  const crud = useCrud<Beat>(beatsData as Beat[], 'beats');
   const [form, setForm] = useState<Beat>(empty);
 
   const columns = [

@@ -31,7 +31,7 @@ function Form({ value, onChange, onSave, label }: { value: Dist; onChange: (v: D
 }
 
 export default function Distribution() {
-  const crud = useCrud<Dist>(distributionData as Dist[]);
+  const crud = useCrud<Dist>(distributionData as Dist[], 'distribution');
   const [form, setForm] = useState<Dist>(empty);
 
   const columns = [

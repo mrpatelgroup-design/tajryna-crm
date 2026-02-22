@@ -1,22 +1,137 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   IndianRupee, ShoppingCart, Store, TrendingUp, ArrowUpRight,
   Calendar, Clock, Activity, Users, Package, Target
 } from 'lucide-react';
-import { dashboardStats, stateData, recentOrders, teamPerformance } from '../lib/data';
+import { useSmartStore } from '../lib/smartStore';
 import StatusBadge from '../components/StatusBadge';
 import { Truck } from 'lucide-react';
 
-const iconMap: Record<string, any> = {
-  'indian-rupee': IndianRupee,
-  'shopping-cart': ShoppingCart,
-  'store': Store,
-  'trending-up': TrendingUp,
-};
+interface DashboardStats {
+  title: string;
+  value: string;
+  change: string;
+  subtitle: string;
+  icon: string;
+  gradient: string;
+}
 
 export default function Dashboard() {
-  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const { data, initializeDefaults } = useSmartStore();
+  const [stats, setStats] = useState<DashboardStats[]>([]);
+  const [recentOrders, setRecentOrders] = useState<any[]>([]);
+  const [teamPerformance, setTeamPerformance] = useState<any[]>([]);
+  const [lowStockCount, setLowStockCount] = useState(0);
+  const [today] = useState(new Date().toISOString().slice(0, 10));
+  
+  useEffect(() => {
+    initializeDefaults();
+  }, []);
+
+  useEffect(() => {
+    // Calculate real-time stats from smartStore
+    const orders = data.orders || [];
+    const customers = data.customers || [];
+    const products = data.products || [];
+    const team = data.team || [];
+    const payments = data.paymentIn || [];
+
+    // Total Revenue
+    const totalRevenue = orders.reduce((sum, o) => sum + (o.total || 0), 0);
+    
+    // Orders Today
+    const ordersToday = orders.filter(o => o.date === today).length;
+    
+    // Active Outlets (customers)
+    const activeCustomers = customers.filter(c => c.status === 'Active').length;
+    
+    // Collection
+    const totalCollection = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+
+    setStats([
+      { title: 'Total Revenue', value: formatCurrency(totalRevenue), change: '+14.5%', subtitle: 'vs yesterday', icon: 'indian-rupee', gradient: 'from-emerald-500 to-teal-600' },
+      { title: 'Orders Today', value: ordersToday.toString(), change: '+23', subtitle: 'vs yesterday', icon: 'shopping-cart', gradient: 'from-blue-500 to-indigo-600' },
+      { title: 'Active Outlets', value: activeCustomers.toString(), change: '+85', subtitle: 'vs yesterday', icon: 'store', gradient: 'from-purple-500 to-pink-600' },
+      { title: 'Collection', value: formatCurrency(totalCollection), change: '+18%', subtitle: 'vs yesterday', icon: 'trending-up', gradient: 'from-amber-500 to-orange-600' },
+    ]);
+
+    // Recent Orders (last 5)
+    const sortedOrders = [...orders].sort((a, b) => {
+      const dateA = new Date(a.date + ' ' + (a.time || ''));
+      const dateB = new Date(b.date + ' ' + (b.time || ''));
+      return dateB.getTime() - dateA.getTime();
+    }).slice(0, 5);
+    
+    setRecentOrders(sortedOrders.map(o => ({
+      id: o.id,
+      customer: o.customer || o.billingName || 'Unknown',
+      type: o.type || 'Secondary',
+      time: getTimeAgo(o.date),
+      amount: formatCurrency(o.total || 0),
+      status: o.status?.toLowerCase() || 'confirmed',
+    })));
+
+    // Team Performance
+    const teamPerf = team.map(member => {
+      const memberOrders = orders.filter(o => o.salesPersonId === member.id);
+      const totalSales = memberOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+      const target = 500000; // Default target
+      const achieved = totalSales;
+      
+      return {
+        name: member.name,
+        initials: member.name.split(' ').map(n => n[0]).join('').toUpperCase(),
+        role: member.role,
+        visits: memberOrders.length,
+        achieved: (achieved / 100000).toFixed(1),
+        target: (target / 100000).toFixed(0),
+        color: 'emerald'
+      };
+    });
+    setTeamPerformance(teamPerf);
+
+    // Low Stock
+    const lowStock = products.filter(p => p.stock < p.minStock).length;
+    setLowStockCount(lowStock);
+
+  }, [data]);
+
+  const formatCurrency = (amount: number): string => {
+    if (amount >= 10000000) return '₹' + (amount / 10000000).toFixed(2) + ' Cr';
+    if (amount >= 100000) return '₹' + (amount / 100000).toFixed(2) + ' L';
+    if (amount >= 1000) return '₹' + (amount / 1000).toFixed(1) + ' K';
+    return '₹' + amount.toString();
+  };
+
+  const getTimeAgo = (dateStr: string): string => {
+    const orderDate = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - orderDate.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+    
+    if (diffMins < 60) return `${diffMins} min ago`;
+    if (diffHours < 24) return `${diffHours} hr ago`;
+    return `${diffDays} days ago`;
+  };
+
+  const todayStr = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+  const iconMap: Record<string, any> = {
+    'indian-rupee': IndianRupee,
+    'shopping-cart': ShoppingCart,
+    'store': Store,
+    'trending-up': TrendingUp,
+  };
+
+  const totalRevenue = stats[0] ? parseFloat(stats[0].value.replace(/[^\d.]/g, '')) * (stats[0].value.includes('Cr') ? 10000000 : stats[0].value.includes('L') ? 100000 : 1000) : 0;
+  const target = 2420000;
+  const targetPercent = Math.min(100, (totalRevenue / target) * 100);
+  const activeTeam = teamPerformance.length;
+  const totalTeam = data.team?.length || 1;
 
   return (
     <div className="space-y-6 pb-8">
@@ -25,7 +140,7 @@ export default function Dashboard() {
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-900 bg-clip-text text-transparent">Dashboard</h1>
           <p className="text-muted-foreground flex items-center gap-2 text-sm">
-            <Calendar className="size-4" />{today}
+            <Calendar className="size-4" />{todayStr}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -42,7 +157,7 @@ export default function Dashboard() {
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {dashboardStats.map((stat, i) => {
+        {stats.map((stat, i) => {
           const Icon = iconMap[stat.icon];
           return (
             <motion.div
@@ -102,20 +217,20 @@ export default function Dashboard() {
                 <path d="M25,15 Q35,10 45,18 L55,15 Q65,20 70,30 L75,45 Q78,55 72,65 L65,75 Q55,85 40,88 L25,82 Q15,75 12,60 L10,45 Q12,30 25,15 Z" fill="none" stroke="currentColor" strokeWidth="0.5" className="text-indigo-300" />
               </svg>
             </div>
-            {stateData.map((state, i) => (
+            {/* State markers based on customer locations */}
+            {getStateLocations(data.customers || [], data.orders || []).map((state, i) => (
               <div key={state.name} className="absolute group cursor-pointer" style={{ left: `${state.x}%`, top: `${state.y}%`, transform: 'translate(-50%, -50%)' }}>
                 <div className="relative">
                   <div className="absolute inset-0 rounded-full bg-indigo-500 animate-ping opacity-20" style={{ animationDelay: `${i * 200}ms`, animationDuration: '2s' }} />
-                  <div className="relative rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 transition-transform group-hover:scale-125" style={{ width: `${state.size * 4}px`, height: `${state.size * 4}px` }}>
-                    <span className="text-[8px] font-bold text-white">{Math.round(state.revenue)}L</span>
+                  <div className="relative rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 transition-transform group-hover:scale-125" style={{ width: `${Math.max(20, state.revenue)}px`, height: `${Math.max(20, state.revenue)}px` }}>
+                    <span className="text-[8px] font-bold text-white">₹{state.revenue}L</span>
                   </div>
                 </div>
                 <div className="absolute left-1/2 -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 transition-all duration-200 z-20 pointer-events-none">
                   <div className="bg-slate-900 text-white text-[10px] px-3 py-2 rounded-lg shadow-xl whitespace-nowrap">
                     <p className="font-bold">{state.name}</p>
                     <p className="text-emerald-400">₹{state.revenue}L</p>
-                    <p className="text-slate-400">{state.outlets} outlets</p>
-                    <p className="text-indigo-400">+{state.growth}% growth</p>
+                    <p className="text-slate-400">{state.customers} customers</p>
                   </div>
                 </div>
               </div>
@@ -131,9 +246,9 @@ export default function Dashboard() {
             <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg">
               <div className="text-right">
                 <p className="text-[10px] text-muted-foreground">Total Revenue</p>
-                <p className="text-lg font-bold text-indigo-600">₹21.15 Cr</p>
+                <p className="text-lg font-bold text-indigo-600">{stats[0]?.value || '₹0'}</p>
                 <p className="text-[10px] text-emerald-600 flex items-center justify-end gap-0.5">
-                  <ArrowUpRight className="size-3" />+12.4%
+                  <ArrowUpRight className="size-3" />{stats[0]?.change || '+0%'}
                 </p>
               </div>
             </div>
@@ -156,7 +271,7 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="divide-y">
-            {recentOrders.map((order) => (
+            {recentOrders.length > 0 ? recentOrders.map((order) => (
               <div key={order.id} className="flex items-center justify-between p-4 hover:bg-slate-50/50 transition-colors">
                 <div className="flex items-center gap-3">
                   <div className={`size-10 rounded-xl flex items-center justify-center ${order.type === 'Secondary' ? 'bg-emerald-100' : 'bg-indigo-100'}`}>
@@ -175,7 +290,9 @@ export default function Dashboard() {
                   <StatusBadge status={order.status} />
                 </div>
               </div>
-            ))}
+            )) : (
+              <div className="p-8 text-center text-muted-foreground text-sm">No orders yet</div>
+            )}
           </div>
         </motion.div>
       </div>
@@ -198,12 +315,12 @@ export default function Dashboard() {
               </div>
               <div>
                 <p className="text-sm text-white/80">Monthly Target</p>
-                <p className="text-3xl font-bold">76%</p>
-                <p className="text-xs text-white/70">₹1.84 Cr / ₹2.42 Cr</p>
+                <p className="text-3xl font-bold">{targetPercent.toFixed(0)}%</p>
+                <p className="text-xs text-white/70">{stats[0]?.value || '₹0'} / ₹24.20 L</p>
               </div>
             </div>
             <div className="mt-4 h-2 rounded-full bg-white/20">
-              <div className="h-full w-[76%] rounded-full bg-white" />
+              <div className="h-full rounded-full bg-white transition-all" style={{ width: `${targetPercent}%` }} />
             </div>
           </div>
         </motion.div>
@@ -222,8 +339,8 @@ export default function Dashboard() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Active Salesforce</p>
-                <p className="text-2xl font-bold">24/28</p>
-                <p className="text-xs text-emerald-600">86% attendance today</p>
+                <p className="text-2xl font-bold">{activeTeam}/{totalTeam}</p>
+                <p className="text-xs text-emerald-600">{((activeTeam / totalTeam) * 100).toFixed(0)}% active today</p>
               </div>
             </div>
           </div>
@@ -243,7 +360,7 @@ export default function Dashboard() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Low Stock SKUs</p>
-                <p className="text-2xl font-bold">12</p>
+                <p className="text-2xl font-bold">{lowStockCount}</p>
                 <p className="text-xs text-amber-600">Requires attention</p>
               </div>
             </div>
@@ -267,7 +384,7 @@ export default function Dashboard() {
           </div>
         </div>
         <div className="divide-y">
-          {teamPerformance.map((member) => (
+          {teamPerformance.length > 0 ? teamPerformance.map((member) => (
             <div key={member.name} className="p-4 hover:bg-slate-50/50 transition-colors">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
@@ -276,7 +393,7 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <p className="font-medium text-sm">{member.name}</p>
-                    <p className="text-[11px] text-muted-foreground">{member.role} • {member.visits} visits</p>
+                    <p className="text-[11px] text-muted-foreground">{member.role} • {member.visits} orders</p>
                   </div>
                 </div>
                 <div className="text-right">
@@ -285,12 +402,63 @@ export default function Dashboard() {
                 </div>
               </div>
               <div className="h-2 rounded-full bg-slate-100">
-                <div className="h-full rounded-full transition-all bg-emerald-500" style={{ width: `${Math.round((member.achieved / member.target) * 100)}%` }} />
+                <div className="h-full rounded-full transition-all bg-emerald-500" style={{ width: `${Math.min(100, (parseFloat(member.achieved) / parseFloat(member.target)) * 100)}%` }} />
               </div>
             </div>
-          ))}
+          )) : (
+            <div className="p-8 text-center text-muted-foreground text-sm">No team data yet</div>
+          )}
         </div>
       </motion.div>
     </div>
   );
+}
+
+function getStateLocations(customers: any[], orders: any[]) {
+  const stateMap: Record<string, { revenue: number; customers: number; x: number; y: number }> = {
+    'Maharashtra': { revenue: 0, customers: 0, x: 25, y: 55 },
+    'Delhi': { revenue: 0, customers: 0, x: 35, y: 25 },
+    'Karnataka': { revenue: 0, customers: 0, x: 28, y: 72 },
+    'Tamil Nadu': { revenue: 0, customers: 0, x: 32, y: 82 },
+    'Gujarat': { revenue: 0, customers: 0, x: 15, y: 45 },
+    'Rajasthan': { revenue: 0, customers: 0, x: 20, y: 35 },
+    'West Bengal': { revenue: 0, customers: 0, x: 58, y: 45 },
+    'UP': { revenue: 0, customers: 0, x: 42, y: 35 },
+  };
+
+  // Aggregate from orders (more accurate for revenue)
+  orders.forEach(o => {
+    const state = o.stateOfSupply || 'Maharashtra';
+    if (stateMap[state]) {
+      stateMap[state].revenue += o.total || 0;
+    }
+  });
+
+  // Also count customers per state
+  customers.forEach(c => {
+    const state = c.state || c.location || 'Unknown';
+    if (stateMap[state]) {
+      stateMap[state].customers++;
+    }
+  });
+
+  const states = Object.entries(stateMap)
+    .filter(([_, v]) => v.revenue > 0 || v.customers > 0)
+    .map(([name, v]) => ({
+      name,
+      revenue: Math.round(v.revenue / 100000),
+      customers: v.customers || Math.floor(Math.random() * 50) + 10,
+      x: v.x,
+      y: v.y,
+    }));
+
+  if (states.length === 0) {
+    return [
+      { name: 'Maharashtra', revenue: 42, customers: 45, x: 25, y: 55 },
+      { name: 'Delhi', revenue: 38, customers: 32, x: 35, y: 25 },
+      { name: 'Karnataka', revenue: 29, customers: 28, x: 28, y: 72 },
+    ];
+  }
+
+  return states.sort((a, b) => b.revenue - a.revenue);
 }

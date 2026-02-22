@@ -30,7 +30,7 @@ function Form({ value, onChange, onSave, label }: { value: Sale; onChange: (v: S
 }
 
 export default function PrimarySales() {
-  const crud = useCrud<Sale>(primarySalesData as Sale[]);
+  const crud = useCrud<Sale>(primarySalesData as Sale[], 'primarySales');
   const [form, setForm] = useState<Sale>(empty);
   const total = crud.data.reduce((s, d) => s + d.amount, 0);
 

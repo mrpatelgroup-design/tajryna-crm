@@ -30,7 +30,7 @@ function Form({ value, onChange, onSave, label }: { value: Scheme; onChange: (v:
 }
 
 export default function Schemes() {
-  const crud = useCrud<Scheme>(schemesData as Scheme[]);
+  const crud = useCrud<Scheme>(schemesData as Scheme[], 'schemes');
   const [form, setForm] = useState<Scheme>(empty);
 
   const columns = [

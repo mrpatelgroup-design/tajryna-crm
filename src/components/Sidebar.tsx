@@ -2,10 +2,10 @@ import { useLocation, Link } from 'react-router-dom';
 import { useAppStore } from '../lib/store';
 import {
   LayoutDashboard, ShoppingCart, Truck, FileText,
-  Building2, Users, Package, UsersRound,
+  Users, Package, UsersRound,
   MapPin, Route, Warehouse,
   TrendingUp, Gift, Tags, Target, Clock, FileText as FileTextAlt,
-  Settings, LogOut, ChevronLeft
+  Settings, LogOut, ChevronLeft, Receipt, CreditCard, Truck as TruckIcon, RotateCcw, DollarSign, Network
 } from 'lucide-react';
 
 const mainModules = [
@@ -13,13 +13,17 @@ const mainModules = [
 ];
 
 const salesModules = [
+  { name: 'Orders', icon: FileText, path: '/orders' },
+  { name: 'Estimates / Quotation', icon: FileText, path: '/estimates' },
+  { name: 'Proforma Invoice', icon: Receipt, path: '/proforma-invoice' },
+  { name: 'Payment In', icon: CreditCard, path: '/payment-in' },
+  { name: 'Delivery Challan', icon: TruckIcon, path: '/delivery-challan' },
+  { name: 'Sales Return', icon: RotateCcw, path: '/sales-return' },
   { name: 'Secondary Sales', icon: ShoppingCart, path: '/secondary-sales' },
   { name: 'Primary Sales', icon: Truck, path: '/primary-sales' },
-  { name: 'Orders', icon: FileText, path: '/orders' },
 ];
 
 const operationsModules = [
-  { name: 'Distribution', icon: Building2, path: '/distribution' },
   { name: 'Customers', icon: Users, path: '/customers' },
   { name: 'Products', icon: Package, path: '/products' },
   { name: 'Team', icon: UsersRound, path: '/team' },
@@ -28,6 +32,7 @@ const operationsModules = [
 const fieldModules = [
   { name: 'Beats', icon: MapPin, path: '/beats' },
   { name: 'Routes', icon: Route, path: '/routes' },
+  { name: 'Network', icon: Network, path: '/network' },
   { name: 'Inventory', icon: Warehouse, path: '/inventory' },
 ];
 
@@ -37,6 +42,7 @@ const performanceModules = [
   { name: 'Schemes', icon: Tags, path: '/schemes' },
   { name: 'Targets', icon: Target, path: '/targets' },
   { name: 'Attendance', icon: Clock, path: '/attendance' },
+  { name: 'Payroll & Salary', icon: DollarSign, path: '/payroll' },
   { name: 'Reports', icon: FileTextAlt, path: '/reports' },
 ];
 

@@ -31,7 +31,7 @@ function Form({ value, onChange, onSave, label }: { value: Att; onChange: (v: At
 }
 
 export default function Attendance() {
-  const crud = useCrud<Att>(attendanceData as Att[]);
+  const crud = useCrud<Att>(attendanceData as Att[], 'attendance');
   const [form, setForm] = useState<Att>(empty);
 
   const columns = [
